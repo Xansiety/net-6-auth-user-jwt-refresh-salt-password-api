@@ -45,7 +45,7 @@ namespace Net_6_JWT_refresh_SALT_Pswd.Controllers
 
             // Generate Token 
             string token = CreateToken(user);
-            return Ok(new { message= "User successfully login", AccessToken = token });
+            return Ok(new { message = "User successfully login", AccessToken = token });
 
         }
 
@@ -71,9 +71,11 @@ namespace Net_6_JWT_refresh_SALT_Pswd.Controllers
 
             List<Claim> claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, user.UserName)
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(ClaimTypes.Role, "Admin")
+                //new Claim(ClaimTypes.Role, "NormalUser")
             };
-            var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration.GetSection("ConfigureJWT:Private_Key").Value));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("ConfigureJWT:Private_Key").Value));
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
 
