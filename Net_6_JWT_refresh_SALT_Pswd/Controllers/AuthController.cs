@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Net_6_JWT_refresh_SALT_Pswd.Model;
 using System.IdentityModel.Tokens.Jwt;
@@ -20,6 +21,19 @@ namespace Net_6_JWT_refresh_SALT_Pswd.Controllers
             _configuration = configuration;
         }
 
+        [HttpGet, Authorize]
+        public ActionResult<Object> GetMe()
+        {
+            var userName = User?.Identity?.Name;
+            var userName2 = User.FindFirstValue(ClaimTypes.Name);
+            var role = User.FindFirstValue(ClaimTypes.Role); 
+            return Ok(new
+            {
+                userName,
+                userName2,
+                role
+            });
+        }
 
 
         [HttpPost("register")]
@@ -87,7 +101,6 @@ namespace Net_6_JWT_refresh_SALT_Pswd.Controllers
 
             var jwt = new JwtSecurityTokenHandler().WriteToken(token);
             return jwt;
-
         }
 
 
