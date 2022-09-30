@@ -61,7 +61,7 @@ namespace Net_6_JWT_refresh_SALT_Pswd.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<string>> Login(UserLoginRequest request)
+        public async Task<ActionResult> Login(UserLoginRequest request)
         {
             if (user.UserName != request.Username) return BadRequest("Invalid User");
             if (user is null) return BadRequest("User not found");
@@ -70,7 +70,13 @@ namespace Net_6_JWT_refresh_SALT_Pswd.Controllers
 
             // Generate Token 
             string token = CreateToken(user);
-            return Ok(new { message = "User successfully login", AccessToken = token });
+
+            // Generate RefreshToken
+            var refreshToken = GenerateRefreshToken();
+            // Set in cookie
+            SetRefreshTokenInCookie(refreshToken);
+
+            return Ok(new { message = "User successfully login", AccessToken = token,  });
 
         }
 
@@ -114,6 +120,51 @@ namespace Net_6_JWT_refresh_SALT_Pswd.Controllers
             return jwt;
         }
 
+
+
+        
+        private RefreshToken GenerateRefreshToken()
+        {
+            var refreshToken = new RefreshToken
+            {
+                Token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64)),
+                Expires = DateTime.Now.AddDays(1),
+                Created = DateTime.Now
+            }; 
+            return refreshToken;
+        }
+
+        private void SetRefreshTokenInCookie(RefreshToken newRefreshToken)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Expires = newRefreshToken.Expires,
+            };
+            Response.Cookies.Append("refreshToken", newRefreshToken.Token, cookieOptions);
+
+            user.RefreshToken = newRefreshToken.Token;
+            user.TokenCreated = newRefreshToken.Created;
+            user.TokenExpires = newRefreshToken.Expires;
+        }
+
+        [HttpPost("refresh-token")]
+        public async Task<ActionResult<string>> RefreshToken()
+        {
+            var refreshTokenOnCookie = Request.Cookies["refreshToken"];
+
+            //compare to db
+            if (!user.RefreshToken.Equals(refreshTokenOnCookie)) return Unauthorized("Invalid refreshToken");
+
+            if (user.TokenExpires < DateTime.Now) return Unauthorized("token expired.");
+
+            string token = CreateToken(user);
+            var newRefreshToken = GenerateRefreshToken();
+            SetRefreshTokenInCookie(newRefreshToken);
+
+            return Ok(token);
+
+        }
 
     }
 }
