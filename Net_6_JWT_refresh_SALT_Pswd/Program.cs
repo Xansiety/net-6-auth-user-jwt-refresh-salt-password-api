@@ -1,3 +1,4 @@
+global using Net_6_JWT_refresh_SALT_Pswd.Services.UserService; //to user in all controllers
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -7,6 +8,10 @@ using System.Text;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddScoped<IUserService, UserService>();
+
+// add the defaults services to access to claims
+builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -26,7 +31,7 @@ builder.Services.AddSwaggerGen(opt =>
     opt.OperationFilter<SecurityRequirementsOperationFilter>();
 });
 
- 
+
 
 // Configure Schema Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

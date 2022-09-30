@@ -15,13 +15,15 @@ namespace Net_6_JWT_refresh_SALT_Pswd.Controllers
     {
         public static User user = new User();
         private readonly IConfiguration _configuration;
+        private readonly IUserService _userService;
 
-        public AuthController(IConfiguration configuration)
+        public AuthController(IConfiguration configuration, IUserService userService)
         {
             _configuration = configuration;
+            _userService = userService;
         }
 
-        [HttpGet, Authorize]
+        [HttpGet("GetMyInfo"), Authorize]
         public ActionResult<Object> GetMe()
         {
             var userName = User?.Identity?.Name;
@@ -33,6 +35,15 @@ namespace Net_6_JWT_refresh_SALT_Pswd.Controllers
                 userName2,
                 role
             });
+        }
+
+
+
+        [HttpGet("GetMyInfoHttpContextService"), Authorize]
+        public ActionResult<Object> GetMyInfoHttpContextService()
+        {
+            var username = _userService.GetMyName();
+            return Ok(username);
         }
 
 
